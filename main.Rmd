@@ -1,0 +1,124 @@
+---
+title: "Credit Card Data Analysis"
+author: "Data Analyst"
+date: "2025-01-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Installing and Loading Required Packages
+
+```{r packages}
+# Install required packages
+if (!require("ggplot2")) install.packages("ggplot2")
+if (!require("kernlab")) install.packages("kernlab")
+if (!require("kknn")) install.packages("kknn")
+
+# Load libraries
+library(ggplot2)
+library(kernlab)
+library(kknn)
+```
+
+## Step 1: Loading Data and Checking Structure
+
+```{r data_loading}
+# Loading the data
+credit_dataset <- read.table("~/Downloads/hw1 (1)/data 2.2/credit_card_data-headers.txt", 
+                           header = TRUE)
+
+# Assigning column 11 as a factor (target variable)
+credit_dataset[,11] <- as.factor(credit_dataset[,11])
+
+# Verify factor conversion
+is.factor(credit_dataset[,11])
+
+# Examine data structure
+str(credit_dataset)
+```
+
+## Step 2: Configuring and Training SVM Model
+
+```{r svm_training}
+# Train SVM model with vanilla dot kernel
+svm_model <- ksvm(as.matrix(credit_dataset[,1:10]), credit_dataset[,11], 
+                 type="C-svc", kernel="vanilladot", C=13, scaled=TRUE)
+
+print(svm_model)
+```
+
+## Step 3: Calculating Coefficients and Intercept
+
+```{r coefficients}
+# Calculate coefficients
+a <- colSums(svm_model@xmatrix[[1]] * svm_model@coef[[1]])
+print(a)
+
+# Calculate intercept
+a0 <- -svm_model@b
+print(a0)
+```
+
+## Step 4: Making Predictions
+
+```{r predictions}
+# Make predictions and calculate accuracy
+SVM_prediction <- predict(svm_model, as.matrix(credit_dataset[1:10]))
+SVM_accuracy <- sum(SVM_prediction == credit_dataset[,11]) / nrow(credit_dataset)
+print(SVM_accuracy)
+```
+
+## Step 5: Tuning the C Parameter
+
+```{r parameter_tuning}
+# Try different C values to find optimal parameter
+for (C_value in c(0.1, 1, 10, 100)) {
+  svm_model <- ksvm(as.matrix(credit_dataset[,1:10]), credit_dataset[,11], 
+                    type="C-svc", kernel="vanilladot", C=C_value, scaled=TRUE)
+  svm_predictions <- predict(svm_model, as.matrix(credit_dataset[,1:10]))
+  svm_accuracy <- sum(svm_predictions == credit_dataset[,11]) / nrow(credit_dataset)
+  cat("C =", C_value, ", Accuracy =", svm_accuracy, "\n")
+}
+```
+
+## Data Visualization with PCA
+
+```{r visualization}
+# Perform PCA and visualize results
+pca <- prcomp(credit_dataset[,1:10], scale=TRUE)
+pca_data <- data.frame(PC1 = pca$x[,1], PC2 = pca$x[,2], Class = credit_dataset[,11])
+
+ggplot(pca_data, aes(x = PC1, y = PC2, color = Class)) + 
+  geom_point() + 
+  theme_minimal()
+```
+
+## Optional: Testing RBF Kernel
+
+```{r rbf_kernel}
+# Train SVM model with RBF kernel
+svm_model_rbf <- ksvm(as.matrix(credit_dataset[,1:10]), credit_dataset[,11], 
+                      type="C-svc", kernel="rbfdot", C=1, scaled=TRUE)
+svm_predictions_rbf <- predict(svm_model_rbf, as.matrix(credit_dataset[,1:10]))
+svm_accuracy_rbf <- sum(svm_predictions_rbf == credit_dataset[,11]) / nrow(credit_dataset)
+print(svm_accuracy_rbf)
+```
+
+## KNN Approach
+
+```{r knn}
+# Train KNN model
+knn_model <- kknn(credit_dataset[,11] ~ ., 
+                  train=data.frame(credit_dataset),
+                  test=data.frame(credit_dataset),
+                  k=5,
+                  scale=TRUE)
+
+# Make predictions and calculate accuracy
+knn_predictions <- ifelse(as.numeric(fitted(knn_model)) > 0.5, 1, 0)
+knn_accuracy <- sum(knn_predictions == credit_dataset[,11]) / nrow(credit_dataset)
+print(knn_accuracy)
+```
