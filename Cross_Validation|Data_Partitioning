@@ -1,0 +1,109 @@
+---
+title: "ISyE:6501 - HW2"
+author: "Karim Akram"
+date: "2025-01-19"
+output: html_document
+---
+
+## Question 3.1
+
+**Step (1): calling all the needed libraries**
+
+```{r}
+
+# KKNN, KSVM and ggplot2 are already installed
+install.packages("caret")
+
+library(ggplot2)
+library(kknn)
+library(kernlab)
+find("trainControl")
+
+```
+
+**Step (2): Loading the data set into our environment**
+
+```{r}
+
+
+data <- read.table(file.choose(), header = TRUE)
+
+head(data) #to make sure the data is correctly loaded into the environment
+
+```
+
+**Step(3): Pre-processing layer (best practice)**
+
+```{r}
+
+sum(is.na(data))
+
+as.factor(data[,11])
+
+#Standardizing the data for better performance""
+
+standardizing <- function(x) { (x-min(x))/(max(x)-min(x))}
+data[, 1:(ncol(data) - 1)] <- as.data.frame(lapply(data[, 1:(ncol(data) - 1)], standardizing))
+
+
+summary(data)
+```
+
+**Step(4): Cross-Validation on a KNN model**
+
+The code below will do a 4 k-folds cross validation with 10 different K (KNN) values to see which K is best.
+
+```{r}
+
+library(caret)
+#K-fold = 4 # nolint
+training_control <- trainControl(method = "cv", number= 4)
+
+Columns <- colnames(data)
+
+set.seed(123) #to ensure consistency
+knn_model <- train(R1~ ., data=data,method ="kknn", trControl = training_control, tuneLength = 5)
+
+print(knn_model)
+plot(knn_model)
+
+```
+
+
+**Step(5): Splitting the data into training, validation and testing data sets, manually and not using the caret library**
+
+```{r}
+library(kernlab)
+
+# Set seed for reproducibility
+set.seed(123)
+
+n <- nrow(data)
+
+# Manual indices to split the rows of the data set into 3 stages
+tr_indx <- sample(1:n, size = round(0.7*n))
+remaining_indx <- setdiff(1:n, tr_indx)
+valid_indx <- sample(remaining_indx, size = round(0.2*n))  
+test_indx <- setdiff(remaining_indx, valid_indx)
+
+# Split the data
+train_data <- data[tr_indx, ]
+valid_data <- data[valid_indx, ]
+test_data <- data[test_indx, ]
+
+train_data$R1 <- as.factor(train_data$R1)
+valid_data$R1 <- as.factor(valid_data$R1)
+test_data$R1  <- as.factor(test_data$R1)
+svm_model <- ksvm(R1 ~ ., data= train_data, kernel= "rbfdot", C=1)
+
+valid_prediction <- predict(svm_model, valid_data)
+test_prediction <- predict(svm_model, test_data)
+
+valid_accuracy <- sum(valid_prediction == valid_data$R1) / length(valid_prediction)
+test_accuracy <- sum(test_prediction == test_data$R1) / length(test_prediction)
+
+cat("Validaction accuracy is equal to:", valid_accuracy, "\n")
+cat("testing accuracy is equal to:", test_accuracy, "\n")
+```
+
+
