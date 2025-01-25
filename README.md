@@ -18,7 +18,7 @@ library(caret)
 ```
 
 ## Dataset
-The project uses **credit card data** and **Iris dataset** from the UC Irvince machine learning repository:
+The project uses **credit card data** and **Iris dataset** from the UC Irvine machine learning repository:
 - **Credit Card Data:** Used for KNN and SVM classification.
 - **Iris Dataset:** Used for K-Means Clustering.
 
