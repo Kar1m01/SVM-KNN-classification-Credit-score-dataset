@@ -66,10 +66,7 @@ table(kmeans_calc$cluster, iris$Species)
 - **SVM with RBF kernel performs well for classification tasks.**
 - **Clustering results depend on feature selection.**
 
-## Future Improvements
-- Try **other clustering techniques** like DBSCAN.
-- Apply **hyperparameter tuning** on SVM.
-- Explore **dimensionality reduction** before clustering.
+
 
 ---
 
