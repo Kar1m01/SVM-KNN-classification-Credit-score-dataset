@@ -71,5 +71,5 @@ table(kmeans_calc$cluster, iris$Species)
 ---
 
 ### Author: **Karim Akram** (January 2025)
-### Georgia Insititue of Technology
+### Georgia Institute of Technology
 
