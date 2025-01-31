@@ -1,4 +1,4 @@
-# CV and Clustering Project
+# Support Vector Machine | K nearest neighbor | Clustering | Cross-Validation
 
 ## Overview
 This project explores **Cross-Validation (CV) and Clustering** techniques using R. It includes:
